@@ -1,0 +1,34 @@
+{
+  "name": "ollama-management-interface",
+  "version": "1.0.0",
+  "description": "Management interface for Ollama",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "keys": "tsx src/manageKeys.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio"
+  },
+  "keywords": [
+    "ollama",
+    "api",
+    "proxy"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^6.2.0",
+    "dotenv": "^16.4.7",
+    "express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.19.11",
+    "prisma": "^6.2.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
