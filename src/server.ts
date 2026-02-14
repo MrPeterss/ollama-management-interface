@@ -37,7 +37,7 @@ const validateApiKey = async (
       data: { lastUsedAt: new Date() },
     });
 
-    next();
+    return next();
   } catch (error) {
     console.error('Error validating API key:', error);
     return res.status(500).json({ error: 'Internal server error' });
@@ -124,14 +124,14 @@ app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
         }
       };
       
-      readStream();
+      return readStream();
     } else {
-      res.end();
+      return res.end();
     }
   } catch (error) {
     console.error('Error connecting to Ollama:', error);
     if (!res.headersSent) {
-      res.status(502).json({ error: 'Failed to connect to Ollama' });
+      return res.status(502).json({ error: 'Failed to connect to Ollama' });
     }
   }
 });
