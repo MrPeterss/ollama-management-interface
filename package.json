@@ -7,7 +7,8 @@
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc",
-    "keys": "tsx src/manageKeys.ts",
+    "keys": "node dist/manageKeys.js",
+    "keys:dev": "tsx src/manageKeys.ts",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio"
