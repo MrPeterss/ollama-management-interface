@@ -10,7 +10,6 @@ dist/
 # Database
 *.db
 *.db-journal
-prisma/migrations/
 
 # Logs
 logs
