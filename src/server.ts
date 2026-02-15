@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import type { Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
 import { prisma } from './prisma.js';
 
 const app = express();
@@ -44,6 +45,20 @@ const validateApiKey = async (
   }
 };
 
+// Validation schemas
+const messageSchema = z.object({
+  role: z.enum(['system', 'user', 'assistant']),
+  content: z.string().min(1, 'Message content cannot be empty'),
+});
+
+const chatRequestSchema = z.object({
+  messages: z
+    .array(messageSchema)
+    .min(1, 'At least one message is required')
+    .max(100, 'Too many messages (max 100)'),
+  stream: z.boolean().optional().default(false),
+});
+
 // Health check endpoint (no auth required)
 app.get('/health', async (_: Request, res: Response) => {
   try {
@@ -56,12 +71,20 @@ app.get('/health', async (_: Request, res: Response) => {
 
 // Chat endpoint
 app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
-  const { messages, stream = false } = req.body;
+  // Validate request body with Zod
+  const validation = chatRequestSchema.safeParse(req.body);
 
-  // Validate messages
-  if (!messages || !Array.isArray(messages)) {
-    return res.status(400).json({ error: 'Missing or invalid messages array' });
+  if (!validation.success) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      details: validation.error.issues.map((err) => ({
+        field: err.path.join('.'),
+        message: err.message,
+      })),
+    });
   }
+
+  const { messages, stream } = validation.data;
 
   const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
   const model = process.env.OLLAMA_MODEL || 'nemotron-3-nano';
