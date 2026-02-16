@@ -89,6 +89,17 @@ app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
   const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
   const model = process.env.OLLAMA_MODEL || 'nemotron-3-nano';
 
+  // Create AbortController to cancel Ollama request if client disconnects
+  const abortController = new AbortController();
+  
+  // Listen for client disconnect
+  req.on('close', () => {
+    if (!res.writableEnded) {
+      console.log('Client disconnected, aborting Ollama request');
+      abortController.abort();
+    }
+  });
+
   try {
     const response = await fetch(`${ollamaUrl}/api/chat`, {
       method: 'POST',
@@ -101,6 +112,7 @@ app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
         stream,
         keep_alive: -1,
       }),
+      signal: abortController.signal,
     });
 
     // Forward status code
@@ -149,6 +161,9 @@ app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
             res.status(502).json({ error: 'Error streaming response' });
           }
           res.end();
+        } finally {
+          // Clean up reader
+          reader.releaseLock();
         }
       };
       
@@ -157,6 +172,15 @@ app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
       return res.end();
     }
   } catch (error) {
+    // Check if error is due to abort (client disconnect)
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.log('Ollama request aborted due to client disconnect');
+      if (!res.headersSent) {
+        res.status(499).end(); // 499 Client Closed Request (nginx convention)
+      }
+      return;
+    }
+    
     console.error('Error connecting to Ollama:', error);
     if (!res.headersSent) {
       return res.status(502).json({ error: 'Failed to connect to Ollama' });
