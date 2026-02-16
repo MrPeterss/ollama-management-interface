@@ -106,6 +106,11 @@ app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
     // Forward status code
     res.status(response.status);
     
+    // Disable nginx buffering for streaming responses
+    if (stream) {
+      res.setHeader('X-Accel-Buffering', 'no');
+    }
+    
     // Forward relevant headers
     const headersToForward = [
       'content-type',
