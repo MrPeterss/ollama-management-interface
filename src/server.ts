@@ -86,22 +86,22 @@ app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
 
   const { messages, stream } = validation.data;
 
-  const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-  const model = process.env.OLLAMA_MODEL || 'nemotron-3-nano';
+  const fetchUrl = process.env.FETCH_URL || 'http://vllm:8000/v1/chat/completions';
+  const model = process.env.MODEL || 'openai/gpt-oss-20b';
 
-  // Create AbortController to cancel Ollama request if client disconnects
+  // Create AbortController to cancel LLM request if client disconnects
   const abortController = new AbortController();
   
   // Listen for client disconnect
   req.on('close', () => {
     if (!res.writableEnded) {
-      console.log('Client disconnected, aborting Ollama request');
+      console.log('Client disconnected, aborting LLM request');
       abortController.abort();
     }
   });
 
   try {
-    const response = await fetch(`${ollamaUrl}/api/chat`, {
+    const response = await fetch(`${fetchUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -174,16 +174,16 @@ app.post('/chat', validateApiKey, async (req: Request, res: Response) => {
   } catch (error) {
     // Check if error is due to abort (client disconnect)
     if (error instanceof Error && error.name === 'AbortError') {
-      console.log('Ollama request aborted due to client disconnect');
+      console.log('LLM request aborted due to client disconnect');
       if (!res.headersSent) {
         res.status(499).end(); // 499 Client Closed Request (nginx convention)
       }
       return;
     }
     
-    console.error('Error connecting to Ollama:', error);
+    console.error('Error connecting to LLM:', error);
     if (!res.headersSent) {
-      return res.status(502).json({ error: 'Failed to connect to Ollama' });
+      return res.status(502).json({ error: 'Failed to connect to LLM' });
     }
   }
 });
@@ -192,7 +192,7 @@ const port = process.env.PORT || '8000';
 
 const server = app.listen(port, async () => {
   console.log(`Server listening at http://localhost:${port}`);
-  console.log(`Proxying to Ollama at ${process.env.OLLAMA_URL || 'http://localhost:11434'}`);
+  console.log(`Proxying to LLM at ${process.env.FETCH_URL || 'http://localhost:8000/v1/chat/completions'}`);
 
   try {
     await prisma.$connect();

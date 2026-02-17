@@ -16,20 +16,20 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ollama-management-interface:latest .
+          docker build -t llm-interface-backend:latest .
 
       - name: Deploy new container
         run: |
           # Stop and remove existing container if running
-          docker stop ollama-management-interface || true
-          docker rm ollama-management-interface || true
+          docker stop llm-interface-backend || true
+          docker rm llm-interface-backend || true
 
           # Run new container
           docker run -d \
-            --name ollama-management-interface \
+            --name llm-interface-backend \
             --network ollama-net \
             --restart unless-stopped \
             -p 8000:8000 \
             --env-file ${{ secrets.ENV_FILE_PATH }} \
             -v ${{ secrets.DATABASE_PATH }}:/app/data/sqlite.db \
-            ollama-management-interface:latest
+            llm-interface-backend:latest

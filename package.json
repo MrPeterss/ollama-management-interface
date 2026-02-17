@@ -1,7 +1,7 @@
 {
-  "name": "ollama-management-interface",
+  "name": "llm-interface-backend",
   "version": "1.0.0",
-  "description": "Management interface for Ollama",
+  "description": "Management interface for LLM",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
@@ -14,7 +14,7 @@
     "db:studio": "prisma studio"
   },
   "keywords": [
-    "ollama",
+    "llm",
     "api",
     "proxy"
   ],
