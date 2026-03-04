@@ -8,10 +8,32 @@ datasource db {
 }
 
 model ApiKey {
-  id          Int      @id @default(autoincrement())
-  key         String   @unique
+  id          Int                 @id @default(autoincrement())
+  key         String              @unique
   description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
   lastUsedAt  DateTime?
+  requests    ApiKeyRequest[]
+  dailyUsage  ApiKeyUsageDaily[]
+}
+
+model ApiKeyUsageDaily {
+  id       Int     @id @default(autoincrement())
+  apiKeyId Int
+  apiKey   ApiKey  @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  date     String  // YYYY-MM-DD
+  count    Int     @default(0)
+
+  @@unique([apiKeyId, date])
+  @@index([apiKeyId])
+}
+
+model ApiKeyRequest {
+  id        Int      @id @default(autoincrement())
+  apiKeyId  Int
+  apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([apiKeyId, createdAt])
 }
