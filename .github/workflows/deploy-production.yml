@@ -29,7 +29,7 @@ jobs:
             --name llm-interface-backend \
             --network ollama-net \
             --restart unless-stopped \
-            -p 8000:8000 \
+            -p 127.0.0.1:8000:8000 \
             --env-file ${{ secrets.ENV_FILE_PATH }} \
             -v ${{ secrets.DATABASE_PATH }}:/app/data/sqlite.db \
             llm-interface-backend:latest
